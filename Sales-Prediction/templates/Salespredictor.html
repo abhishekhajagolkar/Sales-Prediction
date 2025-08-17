@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sales Predictor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00d9ff;
+      --secondary: #ff66c4;
+      --form-bg: rgba(255, 255, 255, 0.07);
+      --text: #ffffff;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background-color: #0f111a;
+      color: var(--text);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      position: relative;
+    }
+
+    canvas.background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .form-box {
+      background: var(--form-bg);
+      padding: 40px 30px;
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 20px rgba(0, 217, 255, 0.15);
+      max-width: 500px;
+      width: 100%;
+      z-index: 1;
+      animation: rollIn 1.2s ease-out;
+    }
+
+    @keyframes rollIn {
+      from {
+        opacity: 0;
+        transform: translateY(60px) rotateX(90deg);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) rotateX(0);
+      }
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.2rem;
+      margin-bottom: 30px;
+      color: var(--primary);
+      text-shadow: 0 0 10px rgba(0,217,255,0.5);
+    }
+
+    label {
+      margin-top: 20px;
+      font-weight: 500;
+      display: block;
+    }
+
+    input.form-control {
+      background: transparent;
+      border: 1px solid #00d9ff;
+      color: #ffffff !important;
+      padding: 12px;
+      border-radius: 10px;
+      transition: 0.3s ease;
+      caret-color: white;
+    }
+
+    input.form-control:focus,
+    input.form-control:hover {
+      border-color: var(--secondary);
+      background-color: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 0 10px var(--primary);
+      transform: scale(1.02);
+      color: #ffffff !important;
+    }
+
+    input:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0 1000px #0f111a inset !important;
+      -webkit-text-fill-color: #ffffff !important;
+    }
+
+    button {
+      margin-top: 30px;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(to right, var(--secondary), var(--primary));
+      border: none;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 16px;
+      color: white;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 0 15px rgba(0,217,255,0.3);
+    }
+
+    button:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 20px var(--primary), 0 0 40px var(--secondary);
+    }
+
+    .form-footer {
+      text-align: center;
+      font-size: 0.9rem;
+      margin-top: 20px;
+      color: #aaa;
+    }
+
+    @media (max-width: 600px) {
+      .form-box {
+        padding: 30px 20px;
+      }
+      h1 {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<canvas class="background"></canvas>
+
+<div class="form-box">
+  <h1><i class="fas fa-chart-line"></i> Sales Predictor</h1>
+  <form method="POST">
+    <label for="TV">📺 TV Budget ($)</label>
+    <input type="number" name="TV" id="TV" step="any" class="form-control" required>
+
+    <label for="Radio">📻 Radio Budget ($)</label>
+    <input type="number" name="Radio" id="Radio" step="any" class="form-control" required>
+
+    <label for="Newspaper">📰 Newspaper Budget ($)</label>
+    <input type="number" name="Newspaper" id="Newspaper" step="any" class="form-control" required>
+
+    <button type="submit"><i class="fas fa-rocket"></i> Predict</button>
+  </form>
+
+</div>
+
+<script>
+  const canvas = document.querySelector('.background');
+  const ctx = canvas.getContext('2d');
+  let width, height;
+
+  function resizeCanvas() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  const colors = ['#00d9ff', '#ffffff', '#00ff99'];
+  const spacing = 6;
+  const lines = colors.map(color => ({
+    color,
+    points: Array.from({ length: Math.floor(window.innerWidth / spacing) }, () =>
+      window.innerHeight / 2 + (Math.random() - 0.5) * 80
+    )
+  }));
+
+  function drawGrid() {
+    const gridSpacing = 60;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+
+    for (let x = 0; x < width; x += gridSpacing) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+
+    for (let y = 0; y < height; y += gridSpacing) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+  }
+
+  function drawLines() {
+    lines.forEach((line, index) => {
+      const { points, color } = line;
+
+      ctx.beginPath();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = color;
+      ctx.moveTo(0, points[0]);
+
+      for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(i * spacing, points[i]);
+      }
+
+      ctx.stroke();
+    });
+  }
+
+  function updateLines() {
+    lines.forEach((line, index) => {
+      const { points } = line;
+      points.shift();
+
+      const lastY = points[points.length - 1];
+      const newY = lastY + (Math.random() - 0.5) * 12 + Math.sin(Date.now() / 500 + index) * 2;
+      points.push(Math.max(10, Math.min(height - 10, newY)));
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    drawGrid();
+    updateLines();
+    drawLines();
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+</script>
+
+</body>
+</html>
